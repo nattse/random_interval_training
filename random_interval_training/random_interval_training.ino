@@ -1,7 +1,7 @@
-int min_session_minutes = 2; // After this number of minutes, end session
-int min_session_presses = 3; // After this number of lever presses, end session
+int min_session_minutes = 1; // After this number of minutes, end session
+int min_session_presses = 1; // After this number of lever presses, end session
 
-int interval_schedule = 30;
+int interval_schedule = 10;
 char which_lever = 'l';
 
 
@@ -341,4 +341,3 @@ void loop() {
   waiting(wait_time);
   waiting_active();
 }
-
