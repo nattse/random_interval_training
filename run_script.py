@@ -57,47 +57,53 @@ def arduino_setup(log):
                 print(reports)
                 log.write(f'{reports}\n')
                 if reports == 'FINISHED':
-                    ardu_stop.set()
+                    #ardu_stop.set()
                     print('AS: Arduino finished normally')
                     break
             if ardu_rts.is_set() and cam_rts.is_set() and not started:
+                time.sleep(5) # Let camera catch up
                 ser.write(bytes('g', encoding='utf8'))
                 started = True
                 log.write(f'AS: Arduino go signal sent at {time.time()}')
         ser.close()
         print('AS: Successfully closed')
+        ardu_stop.set()
+        #time.sleep(2)
     except (KeyboardInterrupt, SystemExit):
         print('AS: Something really went wrong here...')
         ser.close()
         log.close()
-        time.sleep(2)
+        #time.sleep(2)
         sys.exit('AS: Ended via KeyboardInterrupt')
     
 def video_setup(log, ardu_thread):
     started = False
     try:
-        gstr_arg = f'gst-launch-1.0 --gst-debug-level=4 v4l2src device={settings["camera"]} num-buffers=-1 do-timestamp=true ! image/jpeg,width=1920,height=1080,framerate=30/1 ! queue ! avimux ! filesink location={filename + ".avi"} -e'
+        gstr_arg = f'gst-launch-1.0 --gst-debug-level=4 v4l2src device=/dev/video{settings["camera"]} num-buffers=-1 do-timestamp=true ! image/jpeg,width=1920,height=1080,framerate=30/1 ! queue ! avimux ! filesink location={filename + ".avi"} -e'
         print(gstr_arg + '\n')
         while not ardu_rts.is_set():
             pass
         print('VS: Got the arduino RTS')
-        #gstr_cmd = gstr_arg.split()
-        #video_capture = subprocess.Popen(gstr_cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines = True)
-        video_capture = subprocess.Popen('echo hello'.split(), stdout = subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines = True)
+        gstr_cmd = gstr_arg.split()
+        video_capture = subprocess.Popen(gstr_cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines = True)
+        #video_capture = subprocess.Popen(gstr_cmd)
+        #video_capture = subprocess.Popen('echo hello'.split(), stdout = subprocess.PIPE, stderr = subprocess.PIPE, universal_newlines = True)
         vid_id = video_capture.pid
         gst_time = time.time()
         outputs = []
         while not ardu_stop.is_set():
             output = video_capture.stderr.readline()
-            output = "completed state change to PLAYING"
+            #output = "completed state change to PLAYING"
+            #print(output)
             outputs.append(output)
             if 'error' in output and 'is busy' in output:                      # Prefer to get this error over a general EOS error
-                os.kill(vid_id, signal.SIGINT)
+                #os.kill(vid_id, signal.SIGINT)
                 print(f'VS: Your device is busy doing something else\n\n{output}')
                 break
             if time.time() - gst_time > 10:                                    # So we only check for general errors after some time
+                print('d')
                 if 'Waiting for EOS' in video_capture.stdout.readline():
-                    os.kill(vid_id, signal.SIGINT)
+                    #os.kill(vid_id, signal.SIGINT)
                     print(f'VS: Some error encountered\n\n{output}')
                     break
             if video_capture.poll() is not None:
@@ -105,11 +111,19 @@ def video_setup(log, ardu_thread):
                 possible_problems = [i for i in outputs if 'ERROR' in i or 'Error' in i or 'error' in i]
                 print(*possible_problems)
                 break
-            if ("completed state change to PLAYING" in output) and not started: # Or try: "v4l2src gstv4l2src.c:957:gst_v4l2src_create:<v4l2src0>"
+            #if ("completed state change to PLAYING" in output) and not started: # Or try: "v4l2src gstv4l2src.c:957:gst_v4l2src_create:<v4l2src0>"
+            if ("v4l2src gstv4l2src.c:1123:gst_v4l2src_create:<v4l2src0>" in output) and not started:
                 print('VS: starting for the first time')
                 cam_rts.set()
                 log.write(f'Cam recording started at {time.time()}')
                 started = True
+                #ardu_thread.join()
+            if ardu_stop.is_set():
+                break
+        print('VS: exited vid recording loop')
+        #time.sleep(2)
+        #os.kill(vid_id, signal.SIGINT)
+        os.kill(vid_id, signal.SIGINT)
         sys.exit('Ended via completion of Arduino protocol')
     except (KeyboardInterrupt, SystemExit):
         print('VS: video stopped')
@@ -143,3 +157,4 @@ if __name__ == "__main__":
     ardu_thread = threading.Thread(target = arduino_setup, args = (log,))      # Don't forget that args needs to be a tuple, meaning (args) needs to be (args,)
     ardu_thread.start()
     video_setup(log, ardu_thread)
+    print('Complete end')
