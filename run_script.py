@@ -57,7 +57,6 @@ def arduino_setup(log):
                 print(reports)
                 log.write(f'{reports}\n')
                 if reports == 'FINISHED':
-                    #ardu_stop.set()
                     print('AS: Arduino finished normally')
                     break
             if ardu_rts.is_set() and cam_rts.is_set() and not started:
@@ -68,12 +67,10 @@ def arduino_setup(log):
         ser.close()
         print('AS: Successfully closed')
         ardu_stop.set()
-        #time.sleep(2)
     except (KeyboardInterrupt, SystemExit):
         print('AS: Something really went wrong here...')
         ser.close()
         log.close()
-        #time.sleep(2)
         sys.exit('AS: Ended via KeyboardInterrupt')
     
 def video_setup(log, ardu_thread):
@@ -91,19 +88,19 @@ def video_setup(log, ardu_thread):
         vid_id = video_capture.pid
         gst_time = time.time()
         outputs = []
-        while not ardu_stop.is_set():
-            output = video_capture.stderr.readline()
-            #output = "completed state change to PLAYING"
-            #print(output)
+        while not ardu_stop.is_set(): 
+            # Watch out - this is blocking when there isn't anything to read
+            # Which means that after the video starts (when there isn't any output here)
+            # we will be stuck here, and will not check ardu_stop, so we'd have to manually
+            # stop things
+            output = video_capture.stderr.readline() 
             outputs.append(output)
             if 'error' in output and 'is busy' in output:                      # Prefer to get this error over a general EOS error
-                #os.kill(vid_id, signal.SIGINT)
                 print(f'VS: Your device is busy doing something else\n\n{output}')
                 break
             if time.time() - gst_time > 10:                                    # So we only check for general errors after some time
                 print('d')
                 if 'Waiting for EOS' in video_capture.stdout.readline():
-                    #os.kill(vid_id, signal.SIGINT)
                     print(f'VS: Some error encountered\n\n{output}')
                     break
             if video_capture.poll() is not None:
@@ -117,12 +114,10 @@ def video_setup(log, ardu_thread):
                 cam_rts.set()
                 log.write(f'Cam recording started at {time.time()}')
                 started = True
-                #ardu_thread.join()
+                ardu_thread.join() # Without this line, we would re-enter the loop and get stuck on video_capture.stderr.readline()
             if ardu_stop.is_set():
                 break
         print('VS: exited vid recording loop')
-        #time.sleep(2)
-        #os.kill(vid_id, signal.SIGINT)
         os.kill(vid_id, signal.SIGINT)
         sys.exit('Ended via completion of Arduino protocol')
     except (KeyboardInterrupt, SystemExit):
@@ -135,7 +130,7 @@ def video_setup(log, ardu_thread):
         ardu_stop.set()
         ardu_thread.join()
         log.close()
-        sys.exit('VS: Ended via KeyboardInterrupt')
+        sys.exit('VS: byeee')
         
 def check_filenames():
     #filename = os.path.join(settings['output_folder'], sys.argv[1])
