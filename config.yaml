@@ -4,7 +4,7 @@
 camera: 0
 
 # Serial port in the arduino app, found in /dev; e.g. ttyACM1, or cu.usbmodem1201
-arduino: cu.usbmodem1101
+arduino: ttyACM1
 
 # Absolute path to where you want the output data to be stored
 # Leave blank to export data to the directory containing config.yaml

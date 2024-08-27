@@ -26,8 +26,8 @@ if not settings['output_folder']:                                              #
 start_time = time.time()
 
 def start_logging():
-    #filename = os.path.join(settings['output_folder'], sys.argv[1])
-    filename = os.path.join(settings['output_folder'], 'test')
+    filename = os.path.join(settings['output_folder'], sys.argv[1])
+    #filename = os.path.join(settings['output_folder'], 'test')
     log = open(filename + '.txt', 'w')
     log.write(filename + '.txt\n')
     log.write(f'Experiment began: {datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")}\n')
@@ -133,12 +133,11 @@ def video_setup(log, ardu_thread):
         sys.exit('VS: byeee')
         
 def check_filenames():
-    #filename = os.path.join(settings['output_folder'], sys.argv[1])
-    filename = os.path.join(settings['output_folder'], 'test')
-    #if os.path.isfile(filename + '.txt'):
-    #    raise NameError(f'File {filename}.txt already exists')
-    #if os.path.isfile(filename + '.avi'):
-    #    raise NameError(f'File {filename}.avi already exists')
+    filename = os.path.join(settings['output_folder'], sys.argv[1])
+    if os.path.isfile(filename + '.txt'):
+        raise NameError(f'File {filename}.txt already exists')
+    if os.path.isfile(filename + '.avi'):
+        raise NameError(f'File {filename}.avi already exists')
     return filename
     
 filename = check_filenames()
