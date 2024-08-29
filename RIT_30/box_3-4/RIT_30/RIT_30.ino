@@ -76,7 +76,6 @@ void check_food() {
       return;
     }
     else if (dispense_on == false) {
-      Serial.println("dispensing");
       digitalWrite(dispense_control, HIGH);
       //digitalWrite(food_light, HIGH);
       dispense_on = true;
