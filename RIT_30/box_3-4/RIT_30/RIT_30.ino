@@ -1,9 +1,8 @@
-
 int min_session_minutes = 60; // After this number of minutes, end session
 int min_session_presses = 50; // After this number of lever presses, end session
 
 int interval_schedule = 30;
-char which_lever = 'r';
+char which_lever = 'l';
 
 
 
@@ -26,7 +25,7 @@ int no_single_ir_in = 0; //But if the IR sensor is good, i.e. doesn't throw rand
 void measure_ir() {
   int irValue = analogRead(detect_signal);
   //Serial.println(irValue);
-  if ((irValue < 300) and (ir_broken == false)) {
+  if ((irValue < 20) and (ir_broken == false)) {
     if (no_single_ir_in > 5){
       Serial.print("nose_in ");
       send_report();
@@ -36,10 +35,10 @@ void measure_ir() {
       no_single_ir_in += 1;
     }
   }
-  if (irValue < 300) {
+  if (irValue < 20) {
     no_single_ir = 0;
   }
-  if ((irValue > 700) and (ir_broken == true)) {
+  if ((irValue > 25) and (ir_broken == true)) {
     if (no_single_ir > 5) {
       Serial.print("nose_out ");
       send_report();
@@ -50,7 +49,7 @@ void measure_ir() {
       no_single_ir += 1;
     }
   }
-  if (irValue > 700) {
+  if (irValue > 25) {
     no_single_ir_in = 0;
   }
 }
