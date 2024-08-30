@@ -229,9 +229,6 @@ a random number of milliseconds between 0 and that value.
 */ 
 long generate_wait_time(int interval_schedule) {
   long milli_wait = random(interval_schedule * 1000);
-  Serial.print("Wait time is ");
-  Serial.print(milli_wait);
-  Serial.println(" milliseconds");
   return milli_wait;
 }
 
@@ -244,6 +241,8 @@ waiting, we just make sure to take some measurements and to reset
 the food signal if it is still on.
 */
 void waiting(long wait_time) {
+  Serial.print("inactive ");
+  send_report();
   long start_waiting = millis();
   while ((millis() - start_waiting) < wait_time) {
     measure_ir();
@@ -258,12 +257,17 @@ void waiting(long wait_time) {
 We enter this active waiting loop once the inactive period finishes.
 Once the lever is hit, we signal the dispenser and return to the start.
 */
-void waiting_active() {
-  Serial.print("Actively waiting...");  // Remove before use
-  while (true) {
+void waiting_active(long active_time) {
+  Serial.print("active ");  
+  send_report();
+  bool rewarded = false;
+  long start = millis();
+  while ((millis() - start) < active_time) {
     bool lever_status = read_lever(which_lever);
-    if (lever_status) {
-      break;
+    if (lever_status && !rewarded) {
+      Serial.print("rewarded ");
+      send_report();
+      rewarded = true;
     }
     measure_ir();
     check_food();
@@ -302,7 +306,7 @@ void check_if_done() {
 
 void setup() {
   Serial.begin(9600);
-
+  randomSeed(analogRead(1));
   //Lever and dispenser pins and stuff
   pinMode(left_lever_control, OUTPUT);
   pinMode(left_lever_report, INPUT);
@@ -339,6 +343,11 @@ void setup() {
 
 void loop() {
   long wait_time = generate_wait_time(interval_schedule);
+  long active_time = (interval_schedule * 1000) - wait_time;
+  Serial.print("w/a=");
+  Serial.print(wait_time);
+  Serial.print("/");
+  Serial.println(active_time);
   waiting(wait_time);
-  waiting_active();
+  waiting_active(active_time);
 }
