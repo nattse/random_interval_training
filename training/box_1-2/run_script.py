@@ -117,7 +117,7 @@ def video_setup(log, ardu_thread):
                 ardu_thread.join() # Without this line, we would re-enter the loop and get stuck on video_capture.stderr.readline()
             if ardu_stop.is_set():
                 break
-        print('VS: detected Arduino end signal)
+        print('VS: detected Arduino end signal')
         time.sleep(30)
         print('VS: exited vid recording loop')
         os.kill(vid_id, signal.SIGINT)
