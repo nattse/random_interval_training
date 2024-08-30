@@ -263,17 +263,18 @@ void waiting_active(long active_time) {
   bool rewarded = false;
   long start = millis();
   while ((millis() - start) < active_time) {
+    check_food();
     bool lever_status = read_lever(which_lever);
     if (lever_status && !rewarded) {
       Serial.print("rewarded ");
       send_report();
+      food_signal = true;
       rewarded = true;
     }
     measure_ir();
     check_food();
     check_if_done();
   }
-  food_signal = true;
   food_delay_timer = millis();
   cum_presses += 1;
   check_food();
