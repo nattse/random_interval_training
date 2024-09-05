@@ -68,6 +68,8 @@ unsigned long food_delay_timer;
 unsigned long food_delay_thresh = 0; // How long we wait between turning dispenser signal line on and off, just a hardware specification hard-coded in
 bool dispense_on = false;
 unsigned long dispense_time;
+int num_presses = 0;
+int cum_presses = 0;
 
 void check_food() {
   if (food_signal) {
@@ -85,6 +87,7 @@ void check_food() {
       digitalWrite(dispense_control, LOW);
       dispense_on = false;    
       food_signal = false;  
+      cum_presses += 1; // Represents one full cycling of the food dispenser
     }
   }
 }
@@ -104,8 +107,6 @@ int right_lever_control = 13;
 int right_lever_report = A4;
 int right_led = 3;
 
-int num_presses = 0;
-int cum_presses = 0;
 bool lever_pressed = false;
 bool lever_out = false;
 int session_press = -1;
@@ -228,7 +229,7 @@ Enter a value in seconds and it will generate
 a random number of milliseconds between 0 and that value.
 */ 
 long generate_wait_time(int interval_schedule) {
-  long milli_wait = random(interval_schedule * 1000);
+  long milli_wait = random(interval_schedule * 1000L);
   return milli_wait;
 }
 
@@ -276,7 +277,6 @@ void waiting_active(long active_time) {
     check_if_done();
   }
   food_delay_timer = millis();
-  cum_presses += 1;
   check_food();
 }
 
@@ -344,7 +344,7 @@ void setup() {
 
 void loop() {
   long wait_time = generate_wait_time(interval_schedule);
-  long active_time = (interval_schedule * 1000) - wait_time;
+  long active_time = (interval_schedule * 1000L) - wait_time;
   Serial.print("w/a=");
   Serial.print(wait_time);
   Serial.print("/");
