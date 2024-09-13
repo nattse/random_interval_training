@@ -1,3 +1,4 @@
+// Set omission wait time manually in loop function
 
 int min_session_minutes = 60; // After this number of minutes, end session
 int min_session_presses = 50; // After this number of lever presses, end session
@@ -265,7 +266,7 @@ We enter this active waiting loop once the inactive period finishes.
 Once the lever is hit, we signal the dispenser and return to the start.
 */
 void waiting_active(long active_time) {
-  Serial.print("active ");  
+  Serial.print("rewarded ");  // Only in omission test
   send_report();
   bool rewarded = false;
   long start = millis();
@@ -351,7 +352,7 @@ void setup() {
 }
 
 void loop() {
-  long wait_time = 20000;
+  long wait_time = 20000; // How long a mouse needs to wait without pressing
   long active_time = 10;
   waiting(wait_time);
   waiting_active(active_time);
