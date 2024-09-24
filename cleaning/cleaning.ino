@@ -328,8 +328,8 @@ void setup() {
   Serial.println("Waiting...");
   start_time = millis();
   Serial.println("entering loop");
-  extend_lever("l");
-  extend_lever("r");
+  extend_lever('l');
+  extend_lever('r');
 }
 
 void loop() {
