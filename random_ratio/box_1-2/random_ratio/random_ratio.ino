@@ -76,7 +76,8 @@ void check_food() {
       return;
     }
     else if (dispense_on == false) {
-      Serial.println("dispensing");
+      Serial.print("rewarded ");
+      send_report();
       digitalWrite(dispense_control, HIGH);
       //digitalWrite(food_light, HIGH);
       dispense_on = true;
@@ -257,7 +258,8 @@ We enter this active waiting loop once the inactive period finishes.
 Once the lever is hit, we signal the dispenser and return to the start.
 */
 void waiting_active() {
-  Serial.print("Actively waiting...");  // Remove before use
+  //Serial.print("active ");  // Remove before use
+  //send_report();
   while (true) {
     bool lever_status = read_lever(which_lever);
     if (lever_status) {
